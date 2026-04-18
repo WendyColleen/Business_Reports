@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BR6 · Linking Words and Phrases</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --hm-red: #D0021B;
+    --ink: #1a1a1a;
+    --ink-soft: #4a4a4a;
+    --ink-muted: #8a8a8a;
+    --paper: #f9f7f4;
+    --paper-warm: #f2ede6;
+    --rule: #e0d8ce;
+    --correct: #1a6b3c;
+    --correct-bg: #e8f5ed;
+    --wrong: #c0320a;
+    --wrong-bg: #fdeee9;
+    --accent: #2d5fa6;
+    --accent-bg: #eaf0fb;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--paper); font-family: 'DM Sans', sans-serif; color: var(--ink); padding: 0 0 60px; }
+
+  .header { background: var(--ink); color: white; padding: 28px 48px 24px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+  .hm-logo { font-family: 'DM Serif Display', serif; font-size: 32px; letter-spacing: -1px; line-height: 1; color: white; }
+  .hm-logo span { display: inline-block; width: 10px; height: 10px; background: var(--hm-red); border-radius: 50%; margin-left: 2px; vertical-align: top; margin-top: 4px; }
+  .header-meta { text-align: right; }
+  .header-course { font-size: 11px; font-weight: 300; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-bottom: 4px; }
+  .header-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: white; }
+
+  .page { max-width: 860px; margin: 0 auto; padding: 40px 48px 0; }
+  .section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--hm-red); margin-bottom: 10px; }
+  .intro { border-left: 3px solid var(--hm-red); padding: 14px 20px; background: white; margin-bottom: 32px; font-size: 14.5px; color: var(--ink-soft); line-height: 1.65; }
+  .intro strong { color: var(--ink); font-weight: 600; }
+
+  .report-section { font-family: 'DM Serif Display', serif; font-size: 17px; color: var(--ink); margin: 28px 0 14px; }
+  .report-body { font-size: 14.5px; color: var(--ink-soft); line-height: 2.1; }
+  .report-body p { margin-bottom: 18px; }
+  .report-body p:last-child { margin-bottom: 0; }
+
+  /* ── OPTION GROUP ── */
+  /* Each numbered gap is an inline group of clickable option chips */
+  .opt-group { display: inline-flex; align-items: baseline; gap: 0; vertical-align: baseline; margin: 0 2px; white-space: nowrap; flex-wrap: wrap; }
+  .opt-sup { font-size: 9px; font-weight: 700; color: var(--hm-red); margin-right: 3px; vertical-align: super; flex-shrink: 0; line-height: 1; }
+
+  .opt {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    background: white;
+    border: 1.5px solid var(--rule);
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin: 1px 3px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .opt:hover { border-color: var(--ink-muted); }
+
+  /* crossed out = student marked as inappropriate */
+  .opt.crossed {
+    text-decoration: line-through;
+    color: var(--ink-muted);
+    background: var(--paper-warm);
+    border-color: var(--rule);
+    opacity: 0.6;
+  }
+
+  /* after checking */
+  .opt.ok {
+    color: var(--correct);
+    background: var(--correct-bg);
+    border-color: var(--correct);
+    text-decoration: none;
+  }
+  .opt.ok.crossed {
+    /* student crossed out something that should stay — wrong */
+    text-decoration: line-through;
+    color: var(--wrong);
+    background: var(--wrong-bg);
+    border-color: var(--wrong);
+  }
+  .opt.bad {
+    /* should have been crossed out but wasn't */
+    color: var(--wrong);
+    background: var(--wrong-bg);
+    border-color: var(--wrong);
+    text-decoration: line-through;
+  }
+  .opt.bad.crossed {
+    /* correctly crossed out */
+    color: var(--correct);
+    background: var(--correct-bg);
+    border-color: var(--correct);
+    text-decoration: line-through;
+    opacity: 1;
+  }
+
+  /* example: locked, greyed strike */
+  .opt.example-bad {
+    text-decoration: line-through;
+    color: var(--ink-muted);
+    background: var(--paper-warm);
+    border-color: var(--rule);
+    opacity: 0.55;
+    cursor: default;
+    pointer-events: none;
+  }
+  .opt.example-ok {
+    color: var(--ink);
+    background: white;
+    border-color: var(--rule);
+    cursor: default;
+    pointer-events: none;
+  }
+
+  /* BUTTONS */
+  .actions { display: flex; gap: 10px; margin-top: 32px; flex-wrap: wrap; }
+  .btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; padding: 11px 22px; border-radius: 4px; border: 1.5px solid transparent; cursor: pointer; transition: all 0.15s; }
+  .btn-primary { background: var(--ink); color: white; border-color: var(--ink); }
+  .btn-primary:hover { background: #333; }
+  .btn-danger { background: white; color: var(--wrong); border-color: #f0c8be; }
+  .btn-danger:hover { background: var(--wrong-bg); }
+  .btn-pdf { background: white; color: var(--accent); border-color: #b8ccf0; }
+  .btn-pdf:hover { background: var(--accent-bg); }
+
+  /* SCORE */
+  .score-banner { display: none; background: var(--ink); color: white; border-radius: 8px; padding: 18px 24px; margin-top: 24px; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .score-banner.show { display: flex; }
+  .score-num { font-family: 'DM Serif Display', serif; font-size: 36px; line-height: 1; }
+  .score-lbl { font-size: 11px; font-weight: 300; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .score-msg { font-size: 14px; color: rgba(255,255,255,0.8); max-width: 420px; line-height: 1.5; }
+
+  .page-footer { margin-top: 52px; padding-top: 18px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; }
+  .footer-src { font-size: 11px; color: var(--ink-muted); }
+  .footer-ws  { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); }
+
+  .pdf-only { display: none; font-size: 11px; color: var(--ink-muted); margin-top: 10px; text-align: right; }
+  @media print {
+    body { background: white; }
+    .header { padding: 18px 32px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { padding: 20px 32px 0; max-width: 100%; }
+    .actions { display: none !important; }
+    .score-banner.show { display: flex !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .opt { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pdf-only { display: block !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="hm-logo">HM<span></span></div>
+  <div class="header-meta">
+    <div class="header-course">R352 &middot; Intercultural Skills II &middot; Business Reports</div>
+    <div class="header-title">BR6: Linking Words and Phrases</div>
+  </div>
+</header>
+
+<main class="page">
+  <div style="margin-bottom:8px" class="section-label">Worksheet BR6</div>
+  <div class="intro">
+    In this report, <strong>one, two or all three</strong> of the numbered linking words or phrases may be appropriate in context. <strong>Click to cross out the ones that are not appropriate.</strong> The first one has been done for you.
+  </div>
+
+  <div class="report-body">
+
+    <div class="report-section">Introduction / Background</div>
+
+    <p>This report was prepared for the City of Munich by München Tourismus in its role as Munich's destination management organization (DMO). The report provides key facts on international tourist arrivals to Munich
+    <span class="opt-group">
+      <span class="opt-sup">1</span>
+      <span class="opt example-bad" data-gid="1" data-word="with the purpose of">with the purpose of</span>
+      <span class="opt example-ok"  data-gid="1" data-word="so that the city can">so that the city can</span>
+      <span class="opt example-ok"  data-gid="1" data-word="in order to">in order to</span>
+    </span>
+    clearly determine Munich's most important source markets. Additionally, the report analyzes visitor segments and helps the city administration make informed decisions about their future tourism strategy.</p>
+
+    <p>
+    <span class="opt-group">
+      <span class="opt-sup">2</span>
+      <span class="opt" data-gid="2" data-word="To this end" data-correct="1" onclick="toggle(this)">To this end</span>
+      <span class="opt" data-gid="2" data-word="Meanwhile"   data-correct="0" onclick="toggle(this)">Meanwhile</span>
+      <span class="opt" data-gid="2" data-word="As a result" data-correct="0" onclick="toggle(this)">As a result</span>
+    </span>
+    , a survey was conducted among international leisure travelers who visited Munich individually or as part of a customized tour during last year's peak season. A market research agency was contracted to assist with gathering and processing the required data. Travelers who agreed to participate in the survey were provided with a complimentary day pass for MVG.
+    <span class="opt-group">
+      <span class="opt-sup">3</span>
+      <span class="opt" data-gid="3" data-word="Thus"      data-correct="1" onclick="toggle(this)">Thus</span>
+      <span class="opt" data-gid="3" data-word="Therefore" data-correct="1" onclick="toggle(this)">Therefore</span>
+      <span class="opt" data-gid="3" data-word="Hence"     data-correct="1" onclick="toggle(this)">Hence</span>
+    </span>
+    , participants did not perceive the survey as a waste of their time.</p>
+
+    <p>This report is divided into three main parts. Firstly, it highlights the main findings of the survey. Secondly, it draws conclusions and finally gives recommendations for future action.</p>
+
+    <div class="report-section">Findings</div>
+
+    <p>
+    <span class="opt-group">
+      <span class="opt-sup">4</span>
+      <span class="opt" data-gid="4" data-word="Firstly"     data-correct="1" onclick="toggle(this)">Firstly</span>
+      <span class="opt" data-gid="4" data-word="At first"    data-correct="0" onclick="toggle(this)">At first</span>
+      <span class="opt" data-gid="4" data-word="First of all" data-correct="1" onclick="toggle(this)">First of all</span>
+    </span>
+    , the survey participants were asked to provide basic socio-demographic information such as country of residence, gender and age. Based on this information, the market shares of diverse source markets and visitor segments could be determined.
+    <span class="opt-group">
+      <span class="opt-sup">5</span>
+      <span class="opt" data-gid="5" data-word="In addition to" data-correct="1" onclick="toggle(this)">In addition to</span>
+      <span class="opt" data-gid="5" data-word="Secondly"       data-correct="1" onclick="toggle(this)">Secondly</span>
+      <span class="opt" data-gid="5" data-word="Furthermore"    data-correct="1" onclick="toggle(this)">Furthermore</span>
+    </span>
+    , respondents were asked whether they had arranged their trip to Munich individually
+    <span class="opt-group">
+      <span class="opt-sup">6</span>
+      <span class="opt" data-gid="6" data-word="rather than" data-correct="1" onclick="toggle(this)">rather than</span>
+      <span class="opt" data-gid="6" data-word="instead of"  data-correct="1" onclick="toggle(this)">instead of</span>
+      <span class="opt" data-gid="6" data-word="otherwise"   data-correct="0" onclick="toggle(this)">otherwise</span>
+    </span>
+    through a tour operator. Tourists were then asked about the duration of their stay in Munich
+    <span class="opt-group">
+      <span class="opt-sup">7</span>
+      <span class="opt" data-gid="7" data-word="as well"  data-correct="1" onclick="toggle(this)">as well</span>
+      <span class="opt" data-gid="7" data-word="although" data-correct="0" onclick="toggle(this)">although</span>
+      <span class="opt" data-gid="7" data-word="also"     data-correct="1" onclick="toggle(this)">also</span>
+    </span>
+    .</p>
+
+    <p>The results of the research show that the United States are Munich's most important overseas source market. Visitors from the US account for 13.9% of all visitors to the city.
+    <span class="opt-group">
+      <span class="opt-sup">8</span>
+      <span class="opt" data-gid="8" data-word="Apparently"  data-correct="1" onclick="toggle(this)">Apparently</span>
+      <span class="opt" data-gid="8" data-word="Supposedly"  data-correct="0" onclick="toggle(this)">Supposedly</span>
+      <span class="opt" data-gid="8" data-word="Seemingly"   data-correct="1" onclick="toggle(this)">Seemingly</span>
+    </span>
+    , Munich is extraordinarily popular among American tourists,
+    <span class="opt-group">
+      <span class="opt-sup">9</span>
+      <span class="opt" data-gid="9" data-word="although"              data-correct="1" onclick="toggle(this)">although</span>
+      <span class="opt" data-gid="9" data-word="despite the fact that" data-correct="1" onclick="toggle(this)">despite the fact that</span>
+      <span class="opt" data-gid="9" data-word="nevertheless"          data-correct="0" onclick="toggle(this)">nevertheless</span>
+    </span>
+    flight times from the United States are relatively long.
+    <span class="opt-group">
+      <span class="opt-sup">10</span>
+      <span class="opt" data-gid="10" data-word="On the other hand" data-correct="0" onclick="toggle(this)">On the other hand</span>
+      <span class="opt" data-gid="10" data-word="In contrast"       data-correct="1" onclick="toggle(this)">In contrast</span>
+      <span class="opt" data-gid="10" data-word="While"             data-correct="0" onclick="toggle(this)">While</span>
+    </span>
+    7% of tourists came from the United Kingdom and another 7% from Italy. 6.7% of all inbound tourists reported to be from the Persian Gulf states.
+    <span class="opt-group">
+      <span class="opt-sup">11</span>
+      <span class="opt" data-gid="11" data-word="Whereas" data-correct="1" onclick="toggle(this)">Whereas</span>
+      <span class="opt" data-gid="11" data-word="While"   data-correct="1" onclick="toggle(this)">While</span>
+      <span class="opt" data-gid="11" data-word="However" data-correct="0" onclick="toggle(this)">However</span>
+    </span>
+    Spanish visitors accounted for only 4.2% of all tourist arrivals, and a mere 3% of guests visited Munich from France. The average length of stay was 2.1 days, and the overall tourism expenditure of visitors to Munich amounted to 7.65 billion Euro. The majority of international visitors to Munich were males between 25 and 55 years of age.</p>
+
+    <div class="report-section">Conclusions</div>
+
+    <p>
+    <span class="opt-group">
+      <span class="opt-sup">12</span>
+      <span class="opt" data-gid="12" data-word="In conclusion" data-correct="1" onclick="toggle(this)">In conclusion</span>
+      <span class="opt" data-gid="12" data-word="In summary"    data-correct="1" onclick="toggle(this)">In summary</span>
+      <span class="opt" data-gid="12" data-word="At last"       data-correct="0" onclick="toggle(this)">At last</span>
+    </span>
+    , this report has provided some valuable insights on incoming tourism to Munich. The United States are by far Munich's most important source market, while the city welcomed disproportionally few tourists from Spain and France. Visitors to Munich tend to be males who are between 25 and 55 years old. Unfortunately, the survey did not yield representative results
+    <span class="opt-group">
+      <span class="opt-sup">13</span>
+      <span class="opt" data-gid="13" data-word="concerning"     data-correct="1" onclick="toggle(this)">concerning</span>
+      <span class="opt" data-gid="13" data-word="with regard to" data-correct="1" onclick="toggle(this)">with regard to</span>
+      <span class="opt" data-gid="13" data-word="with respect to" data-correct="1" onclick="toggle(this)">with respect to</span>
+    </span>
+    the number of package-tour guests versus independent travelers.
+    <span class="opt-group">
+      <span class="opt-sup">14</span>
+      <span class="opt" data-gid="14" data-word="Additionally" data-correct="1" onclick="toggle(this)">Additionally</span>
+      <span class="opt" data-gid="14" data-word="Actually"     data-correct="0" onclick="toggle(this)">Actually</span>
+      <span class="opt" data-gid="14" data-word="Moreover"     data-correct="1" onclick="toggle(this)">Moreover</span>
+    </span>
+    , it remains unclear what percentage of tourists chose to stay in luxury, midscale or budget hotels, and how many visitors opted for vacation rentals or serviced apartments.</p>
+
+    <div class="report-section">Recommendations</div>
+
+    <p>München Tourismus recommends taking several steps. First, the City of Munich should try to boost the number of incoming tourists from France and Spain, e.g. by launching culture-specific marketing campaigns or by initiating collaborations with tour operators. The city could also convince network and low-cost carriers to launch new routes between Munich Airport and major cities in France and Spain. Second, the City of Munich should do more to attract tourists aged 55 and above, for instance by designing customized tour packages for senior travelers. Additionally, the city could reduce the crowds at major tourist attractions during peak season by incentivizing tourists to visit Munich during the low or shoulder season.</p>
+
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" onclick="checkAll()">Check answers</button>
+    <button class="btn btn-danger"  onclick="resetAll()">Reset</button>
+    <button class="btn btn-pdf"     onclick="downloadPDF()">&#8595; Download results as PDF</button>
+  </div>
+
+  <div class="score-banner" id="scoreBanner">
+    <div><div class="score-num" id="scoreNum">&#8212;</div><div class="score-lbl">Your score</div></div>
+    <div class="score-msg" id="scoreMsg"></div>
+  </div>
+  <div class="pdf-only" id="pdfTimestamp"></div>
+
+  <footer class="page-footer">
+    <div class="footer-src">Source: Prof. Dr. Tilman Schr&ouml;der &middot; R352 Intercultural Skills II</div>
+    <div class="footer-ws">BR6</div>
+  </footer>
+</main>
+
+<script>
+// Toggle crossed-out state on click
+function toggle(el) {
+  if (el.classList.contains('ok') || el.classList.contains('bad')) return; // locked after check
+  el.classList.toggle('crossed');
+}
+
+// Score: each option is one point
+// correct=1 means it should stay (not crossed); correct=0 means it should be crossed out
+function checkAll() {
+  var opts = document.querySelectorAll('.opt[data-correct]');
+  var total = opts.length, score = 0;
+
+  opts.forEach(function(opt) {
+    var shouldKeep = opt.dataset.correct === '1';
+    var isCrossed  = opt.classList.contains('crossed');
+    var correct    = (shouldKeep && !isCrossed) || (!shouldKeep && isCrossed);
+    if (correct) score++;
+
+    // Apply feedback classes
+    opt.classList.remove('ok','bad');
+    if (shouldKeep) {
+      opt.classList.add('ok');      // green border; if also crossed → wrong
+    } else {
+      opt.classList.add('bad');     // red strikethrough; if also crossed → green
+    }
+  });
+
+  document.getElementById('scoreNum').textContent = score + ' / ' + total;
+  var pct = score / total;
+  var msg = pct === 1    ? 'Perfect \u2014 every option judged correctly!'
+    : pct >= 0.8 ? 'Excellent \u2014 just a couple to review.'
+    : pct >= 0.6 ? 'Good work \u2014 check the highlighted options.'
+    : 'Keep going \u2014 review the options and try again.';
+  document.getElementById('scoreMsg').textContent = msg;
+  document.getElementById('scoreBanner').classList.add('show');
+}
+
+function resetAll() {
+  document.querySelectorAll('.opt[data-correct]').forEach(function(opt) {
+    opt.classList.remove('crossed','ok','bad');
+  });
+  document.getElementById('scoreBanner').classList.remove('show');
+}
+
+function downloadPDF() {
+  checkAll();
+  var now   = new Date();
+  var stamp = now.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'})
+    + ' \u00b7 ' + now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('pdfTimestamp').textContent =
+    'Printed: ' + stamp + ' \u00b7 R352 Intercultural Skills II';
+  setTimeout(function(){ window.print(); }, 120);
+}
+</script>
+</body>
+</html>
